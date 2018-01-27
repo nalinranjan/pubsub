@@ -6,12 +6,26 @@
             "label": "build",
             "type": "shell",
             "command": "javac",
-            "args": ["-d", "bin", "-cp", "src", "src/edu/rit/CSCI652/impl/*"]
+            "args": [
+                "-d",
+                "bin",
+                "-cp",
+                "src",
+                "src/edu/rit/CSCI652/impl/*"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         },
         {
             "label": "play",
             "command": "java",
-            "args": ["-cp", "bin", "edu.rit.CSCI652.impl.EventManager"]
+            "args": [
+                "-cp",
+                "bin",
+                "edu.rit.CSCI652.impl.EventManager"
+            ]
         }
     ]
 }
