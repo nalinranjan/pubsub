@@ -43,6 +43,8 @@ public class PubSubAgent implements Publisher, Subscriber{
 		if (agentId == -1) {
 			register();
 		}
+
+		startCli();
 	}
 
 	private void register() {
@@ -57,7 +59,53 @@ public class PubSubAgent implements Publisher, Subscriber{
 	}
 
 	private void startCli() {
+		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
 
+		while (true) {
+			System.out.println("Please select an option: ");
+			System.out.println("1. View avaiable topics");
+			System.out.println("2. Subscribe to a topic");
+			System.out.println("3. Advertise a new topic");
+			System.out.println("4. Publish an article");
+			System.out.println("5. View notifications");
+			System.out.println();
+
+			int selection = 0;
+			try {
+				selection = Integer.parseInt(stdIn.readLine());
+			} catch (NumberFormatException e) {
+				System.out.print("\nInvalid input. ");
+				continue;
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			String message;
+
+			switch (selection) {
+				case 1:
+					message = "topics ";
+					break;
+			
+				case 2:
+					System.out.println();
+					message = "subscribe ";
+					break;
+
+				case 3:
+					message = "advertise ";
+					break;
+				
+				case 4:
+					message = "publish ";
+					break;
+
+				default:
+					break;
+			}
+		}
+
+		// stdIn.close();
 	}
 
 	@Override
