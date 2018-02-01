@@ -42,12 +42,12 @@ public class AgentListenerThread implements Runnable {
 
         switch (message.split(" ")[0]) {
             case "id":
-                int id = Integer.parseInt(message.split(" ")[1]);
+                String id = message.split(" ")[1];
                 
                 try (BufferedWriter fileWriter = new BufferedWriter(new FileWriter(idFile))) {
                     fileWriter.write(id);
                     fileWriter.newLine();
-                    fileWriter.write(port);
+                    fileWriter.write(port + "");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
