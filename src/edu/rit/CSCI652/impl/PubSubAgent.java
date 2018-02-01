@@ -38,7 +38,7 @@ public class PubSubAgent implements Publisher, Subscriber{
 			}
 		}
 
-		new Thread(new AgentListenerThread(listenPort)).start();
+		new Thread(new AgentListenerThread(listenPort, ID_FILE)).start();
 
 		if (agentId == -1) {
 			register();
