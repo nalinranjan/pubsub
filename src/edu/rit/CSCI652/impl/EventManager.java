@@ -1,17 +1,38 @@
 package edu.rit.CSCI652.impl;
 
 
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+
 import edu.rit.CSCI652.demo.Event;
 import edu.rit.CSCI652.demo.Subscriber;
 import edu.rit.CSCI652.demo.Topic;
 
-public class EventManager{
+public class EventManager {
+	private int PORT = 5000;
 	
 	/*
 	 * Start the repo service
 	 */
 	private void startService() {
-		
+		try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+            while (true) {
+				final Socket clientSocket = serverSocket.accept();
+				Thread clientHandler = new Thread(new Runnable() {
+					public void run() {
+						handleInput(clientSocket);
+					}
+				});
+				clientHandler.start();
+            }
+        } catch (IOException e) {
+            System.err.println("Could not start server on port " + PORT);
+        }
+	}
+
+	private void handleInput(Socket clientSocket) {
+		System.out.println("Handling input from " + clientSocket.getLocalAddress());
 	}
 
 	/*
