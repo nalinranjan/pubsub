@@ -4,23 +4,23 @@ public interface Subscriber {
 	/*
 	 * subscribe to a topic
 	 */
-	public void subscribe(Topic topic);
-	
-	/*
-	 * subscribe to a topic with matching keywords
-	 */
-	public void subscribe(String keyword);
+	public void subscribe();
 	
 	/*
 	 * unsubscribe from a topic 
 	 */
-	public void unsubscribe(Topic topic);
+	public void unsubscribe();
 	
 	/*
 	 * unsubscribe to all subscribed topics
 	 */
-	public void unsubscribe();
+	public void unsubscribeAll();
 	
+	/*
+	 * show a list of all available topics
+	 */
+	public void listAllTopics();
+
 	/*
 	 * show the list of topics current subscribed to 
 	 */

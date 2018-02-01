@@ -16,6 +16,7 @@ public class PubSubAgent implements Publisher, Subscriber{
 
 	private int listenPort;
 	private int agentId;
+	private BufferedReader stdIn;
 
 	public PubSubAgent() {
 		try {
@@ -47,28 +48,35 @@ public class PubSubAgent implements Publisher, Subscriber{
 		startCli();
 	}
 
-	private void register() {
+	private void sendMessage(String message) {
 		try (
             Socket socket = new Socket(EM_ADDRESS, EM_PORT);
 			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 		) {
-			out.println("register" + listenPort);
+			out.println(message);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
+	private void register() {
+		sendMessage("register " + listenPort);
+	}
+
 	private void startCli() {
-		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+		stdIn = new BufferedReader(new InputStreamReader(System.in));
 
 		while (true) {
 			System.out.println("Please select an option: ");
 			System.out.println("1. View avaiable topics");
 			System.out.println("2. Subscribe to a topic");
-			System.out.println("3. Advertise a new topic");
-			System.out.println("4. Publish an article");
-			System.out.println("5. View notifications");
-			System.out.println();
+			System.out.println("3. List subsribed topics");
+			System.out.println("4. Unsubscribe from a topic");
+			System.out.println("5. Unsubscribe from all topics");
+			System.out.println("6. Advertise a new topic");
+			System.out.println("7. Publish an article");
+			System.out.println("8. View notifications");
+			System.out.print("\n> ");
 
 			int selection = 0;
 			try {
@@ -80,26 +88,37 @@ public class PubSubAgent implements Publisher, Subscriber{
 				e.printStackTrace();
 			}
 
-			String message;
+			String message = "";
 
 			switch (selection) {
 				case 1:
-					message = "topics ";
+					listAllTopics();
 					break;
-			
+
 				case 2:
-					System.out.println();
-					message = "subscribe ";
+					subscribe();
 					break;
 
 				case 3:
-					message = "advertise ";
+					listSubscribedTopics();
 					break;
 				
 				case 4:
-					message = "publish ";
+					unsubscribe();
 					break;
 
+				case 5:
+					unsubscribeAll();
+					break;
+
+				case 6:
+					advertise();
+					break;
+
+				case 7:
+					publish();
+					break;
+				
 				default:
 					break;
 			}
@@ -108,46 +127,64 @@ public class PubSubAgent implements Publisher, Subscriber{
 		// stdIn.close();
 	}
 
-	@Override
-	public void subscribe(Topic topic) {
-		// TODO Auto-generated method stub
-		
+	public void listAllTopics() {
+		sendMessage("topics");
 	}
 
 	@Override
-	public void subscribe(String keyword) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void unsubscribe(Topic topic) {
-		// TODO Auto-generated method stub
-		
+	public void subscribe() {
+		String message = "subscribe ";
+		System.out.println("\nEnter topic ID: ");
+		try {
+			message += Integer.parseInt(stdIn.readLine());
+			sendMessage(message);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (NumberFormatException e) {
+			System.out.print("\nInvalid input. ");
+		}
 	}
 
 	@Override
 	public void unsubscribe() {
-		// TODO Auto-generated method stub
-		
+		String message = "unsubscribe ";
+		System.out.println("\nEnter topic ID: ");
+		try {
+			message += Integer.parseInt(stdIn.readLine());
+			sendMessage(message);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (NumberFormatException e) {
+			System.out.print("\nInvalid input. ");
+		}
+	}
+
+	@Override
+	public void unsubscribeAll() {
+		sendMessage("unsubscribeall");		
 	}
 
 	@Override
 	public void listSubscribedTopics() {
+		sendMessage("subtopics");
+	}
+
+	@Override
+	public void publish() {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void publish(Event event) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void advertise(Topic newTopic) {
-		// TODO Auto-generated method stub
-		
+	public void advertise() {
+		String message = "advertise ";
+		System.out.println("\nEnter topic name: ");
+		try {
+			message += stdIn.readLine(); 
+			sendMessage(message);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static void main(String[] args) {
