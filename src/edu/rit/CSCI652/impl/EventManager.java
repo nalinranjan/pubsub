@@ -14,30 +14,26 @@ import edu.rit.CSCI652.demo.Topic;
 
 public class EventManager {
 	private int PORT = 5000;
-	
-	public static AtomicInteger idSeed = new AtomicInteger();
+	private int PORT_INDEX = 1;
+
+	public static AtomicInteger agentSeed = new AtomicInteger();
+	public static AtomicInteger topicSeed = new AtomicInteger();
 	// mapping of agent id to its port and ip
 	public static Map<Integer, List<String>> portMap = new HashMap<>();
-	// mapping of topic to list of subscriber ids
-	public static Map<Topic, List<Integer>> topicMap = new HashMap<>();
-	// list of all subscribers
-	public static List<Integer> agents = new ArrayList<Integer>();
-
-	private int PORT_INDEX = 1;
+	// mapping of topic id to list of subscriber ids
+	public static Map<Integer, HashSet<Integer>> topicMap = new HashMap<>();
+	// when creating new topic, add to topicMap like topicMap.put("newtopicid", new HashSet<Integer>())
+	public static Map<String, Topic> topics = new HashMap<>();
 	/*
 	 * Register a PubSub Agent for the first time
 	 */
 	private int registerAgent(String port, InetAddress ip) {
-		agents.add(idSeed.get());
-		
 		List<String> agentInfo = new ArrayList<String>();
 		agentInfo.add(ip.toString());
 		agentInfo.add(port);
-		// add to portMap
-		portMap.put(idSeed.get(), agentInfo);
-		// agents.add(idSeed.get());
+		portMap.put(agentSeed.get(), agentInfo);
 		
-		return idSeed.getAndIncrement();
+		return agentSeed.getAndIncrement();
 	}
 
 	/*
@@ -78,12 +74,12 @@ public class EventManager {
 			BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 		) {
 			String message = in.readLine();
-			String[] messageChunked = message.split("\\s+");
+			String[] messageChunked = message.split("\\&");
 			
 			
 			switch(messageChunked[0]) {
-				case "register":
-					String port = messageChunked[1];
+				case "register":	{
+					String port = messageChunked[PORT_INDEX];
 					int clientId = this.registerAgent(port, clientSocket.getLocalAddress());
 					Socket outputSocket = getOutputSocket(clientId);
 					PrintWriter out = new PrintWriter(outputSocket.getOutputStream(), true);					
@@ -91,18 +87,55 @@ public class EventManager {
 					out.close();
 					outputSocket.close();	
 					break;
+				}
 
-				case "publish": 
+				case "publish":	{ // publish&<topicID>&<content>
+					// send content to all subscribers
+					int topic = Integer.parseInt(messageChunked[1]);
+					String content = messageChunked[2];
+					// iterate to send to every subscriber
+					//this.notifySubscribers();
+					break;
+				}
+				
+				case "subscribe":	{// subscribe&<id>&<topicId>
+					// add agent to the list of subscribers of topic
+					int agentID = Integer.parseInt(messageChunked[1]);
+					int topicID = Integer.parseInt(messageChunked[2]);
+					this.addSubscriber(agentID, topicID);
+					break;
+				}
+
+				case "subscribedtopics":	{	//subscribedtopics&<id>
+					// send a list of all topics available
+					// does the event manager have to maintain a list of topics by name ??!
+					int agentID = Integer.parseInt(messageChunked[1]);
 
 					break;
+				}
 
-				case "subscribe": 
-					// send sp
+				case "unsubscribe":	{	// unsubscribe&<id>&<topicId>
+					int agentID = Integer.parseInt(messageChunked[1]);
+					int topicID = Integer.parseInt(messageChunked[2]);
+					this.removeSubscriber(agentID, topicID);
+					// acknowledge unsubscribed "confirm unsubscribe"
 					break;
+				}
 
-				case "topics":
+				case "unsubscribeall":	{	// unsubscribeall&<id>
 
 					break;
+				}
+
+				case "advertise": {	// advertise <topicName> <keywordsList> 	
+					// create topic 
+					// verify topic doesn't already exist? 
+					String topicName = messageChunked[1].toLowerCase();
+					String[] keywordsList = messageChunked[2].split("\\s+");
+					this.addTopic(topicName, keywordsList);
+
+					break;
+				}
 			}
 		} catch(IOException e){
 			e.printStackTrace();
@@ -126,35 +159,35 @@ public class EventManager {
 	/*
 	 * add new topic when received advertisement of new topic
 	 */
-	// private void addTopic(Topic topic){
-	// 	for (i=0; i<topicMap.length; i++) {
-	// 		if topicMap[i].id == topic.id
-	// 			return;
-	// 	}
-	// 	List<String> subscribers = new ArrayList<String>();
-	// 	topicMap.put(topic, subscribers);
-	// }
+	private void addTopic(String topicName, String[] keywords){
+		
+	}
 	
 	/*
 	 * add subscriber to the internal list
 	 */
-	private void addSubscriber(){
-		
+	private void addSubscriber(int agentID, int topicID){
+		List<String> subscriberInfo = portMap.get(agentID);
+		if (topicMap.containsKey(topicID)) {
+			topicMap.get(topicID).add(agentID);
+		}
 	}
 	
 	/*
 	 * remove subscriber from the list
 	 */
-	private void removeSubscriber(){
-		
+	private void removeSubscriber(int agentID, int topicID){
+		if (topicMap.containsKey(topicID)) {
+			if (topicMap.get(topicID).contains(agentID)) 
+				topicMap.get(topicID).remove(agentID);
+		}
 	}
 	
 	/*
 	 * show the list of subscriber for a specified topic
-	 */
-	private void showSubscribers(Topic topic){
-		
-	}
+	 *
+	private void showSubscribers(int topicID){
+	}*/
 	
 	
 	public static void main(String[] args) {
