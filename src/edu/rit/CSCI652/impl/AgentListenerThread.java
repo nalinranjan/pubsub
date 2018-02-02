@@ -1,10 +1,6 @@
 package edu.rit.CSCI652.impl;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.locks.ReentrantLock;
@@ -68,6 +64,30 @@ public class AgentListenerThread implements Runnable {
                     String[] topicElements = messageChunks[i].split(";");
                     System.out.println("\t" + topicElements[0] + "\t" + topicElements[1]);
                 }
+                break;
+
+            case "confirm":
+                System.out.println(messageChunks[1]);
+                break;
+
+            case "subscribedtopics":
+                System.out.println("Subscribed topics: ");
+                for (int i = 1; i < messageChunks.length; i++) {
+                    String[] topicElements = messageChunks[i].split(";");
+                    System.out.println("\t" + topicElements[0] + "\t" + topicElements[1]);
+                }
+                break;
+
+            case "article":
+                System.out.println("New article published under " + messageChunks[2]);
+                System.out.println("\n" + messageChunks[1] + "\n");
+                System.out.println(messageChunks[2]);
+                break;
+            
+            case "advertisement":
+                System.out.println("New topic created: ");
+                System.out.println("\t" + messageChunks[0] + "\t" + messageChunks[1]);
+                System.out.println("Keywords: " + String.join(" ", messageChunks[2].split(";")));
                 break;
 
             default:
