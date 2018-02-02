@@ -88,14 +88,13 @@ public class EventManager {
 			String message = in.readLine();
 			String[] messageChunked = message.split("\\&");
 			
-			
 			switch(messageChunked[0]) {
 				case "register":	{
 					String port = messageChunked[PORT_INDEX];
 					int clientId = this.registerAgent(port, clientSocket.getLocalAddress());
 					Socket outputSocket = getOutputSocket(clientId);
 					PrintWriter out = new PrintWriter(outputSocket.getOutputStream(), true);					
-					out.println("id " + this.registerAgent(port, clientSocket.getLocalAddress()));
+					out.println("id&" + this.registerAgent(port, clientSocket.getLocalAddress()));
 					out.close();
 					outputSocket.close();	
 					break;
@@ -103,10 +102,12 @@ public class EventManager {
 
 				case "publish":	{ // publish&<topicID>&<content>
 					// send content to all subscribers
-					int topic = Integer.parseInt(messageChunked[1]);
+					int topicID = Integer.parseInt(messageChunked[1]);
 					String content = messageChunked[2];
 					// iterate to send to every subscriber
-					//this.notifySubscribers();
+					Set<Integer> subscribers = topicMap.get(topicID);
+					for (Integer s: subscribers)
+						this.sendMessage(s, content);
 					break;
 				}
 				
@@ -141,11 +142,10 @@ public class EventManager {
 
 				case "advertise": {	// advertise <topicName> <keywordsList> 	
 					// create topic 
-					// verify topic doesn't already exist? 
+					// verify topic doesn't already exist
 					String topicName = messageChunked[1].toLowerCase();
 					String[] keywordsList = messageChunked[2].split("\\s+");
 					this.addTopic(topicName, keywordsList);
-
 					break;
 				}
 			}
@@ -172,7 +172,14 @@ public class EventManager {
 	 * add new topic when received advertisement of new topic
 	 */
 	private void addTopic(String topicName, String[] keywords){
-		
+		if (!topics.containsKey(topicName)) 
+		{	List<String> keywordsList = new ArrayList();
+			for (String k: keywords)
+				keywordsList.add(k);
+			Topic newTopic = new Topic(topicSeed.getAndIncrement(), new String(topicName), keywordsList);
+			topics.put(topicName, newTopic); 
+			this.advertise(newTopic.getID());
+		}
 	}
 	
 	/*
@@ -195,6 +202,30 @@ public class EventManager {
 		}
 	}
 	
+
+	private void unsubscribeAll(int agentID) {
+		for (int t: topicMap.keySet())
+			this.removeSubscriber(agentID, t);
+	}
+
+	private void advertise(int topicID) {
+		// construct message with topic name and keywords
+		Topic t = topics.get(topicID);
+		String message = new String("advertisement" + "&" + t.getName() + "&");	// what 
+		for (String word: t.getKeywords()) 
+			message = new String(message + word + " ");
+		// get all agents
+		Set<Integer> agents = new HashSet<>();
+		for (Integer id: topicMap.keySet()) {
+			agents.addAll(topicMap.get(id));
+		}
+		// send to all agents - message type "advertisement"
+		for (Integer agent: agents) {
+			this.sendMessage(agent, message);
+		}
+	}
+
+
 	/*
 	 * show the list of subscriber for a specified topic
 	 *
