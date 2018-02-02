@@ -71,6 +71,18 @@ public class EventManager {
 		return clientSocket;
 	}
 
+	private void sendMessage(int clientId, String message) {
+		Socket clientSocket = getOutputSocket(clientId);
+		try {
+			PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);					
+			out.println(message);
+			out.close();
+			clientSocket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 	private void handleInput(Socket clientSocket) {
 		System.out.println("Handling input from " + clientSocket.getLocalAddress());
 		// get port from inputStream of socket
