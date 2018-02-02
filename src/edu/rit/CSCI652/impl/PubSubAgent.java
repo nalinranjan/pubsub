@@ -5,6 +5,7 @@ import edu.rit.CSCI652.demo.Subscriber;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class PubSubAgent implements Publisher, Subscriber{
 
@@ -15,6 +16,8 @@ public class PubSubAgent implements Publisher, Subscriber{
 	private int listenPort;
 	private int agentId;
 	private BufferedReader stdIn;
+
+	ReentrantLock consoleLock = new ReentrantLock();
 
 	public PubSubAgent() {
 		try {
@@ -37,7 +40,7 @@ public class PubSubAgent implements Publisher, Subscriber{
 			}
 		}
 
-		new Thread(new AgentListenerThread(listenPort, ID_FILE)).start();
+		new Thread(new AgentListenerThread(listenPort, ID_FILE, consoleLock)).start();
 
 		if (agentId == -1) {
 			register();
@@ -65,6 +68,7 @@ public class PubSubAgent implements Publisher, Subscriber{
 		stdIn = new BufferedReader(new InputStreamReader(System.in));
 
 		while (true) {
+			consoleLock.lock();
 			System.out.println("Please select an option: ");
 			System.out.println("1. View avaiable topics");
 			System.out.println("2. Subscribe to a topic");
@@ -124,6 +128,8 @@ public class PubSubAgent implements Publisher, Subscriber{
 				default:
 					break;
 			}
+
+			consoleLock.unlock();
 		}
 	}
 

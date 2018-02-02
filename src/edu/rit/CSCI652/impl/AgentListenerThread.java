@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * AgentListenerThread
@@ -14,10 +15,13 @@ import java.net.Socket;
 public class AgentListenerThread implements Runnable {
     private int port;
     private String idFile;
+
+    ReentrantLock consoleLock;
     
-    public AgentListenerThread(int port, String idFile) {
+    public AgentListenerThread(int port, String idFile, ReentrantLock consoleLock) {
         this.port = port;
         this.idFile = idFile;
+        this.consoleLock = consoleLock;
     }
 
     @Override
@@ -26,11 +30,13 @@ public class AgentListenerThread implements Runnable {
             System.out.println("Listening on port " + port + "...");
 
             while (true) {
+                consoleLock.lock();
                 Socket emSocket = agentlistenerSocket.accept();
                 BufferedReader in = new BufferedReader(new InputStreamReader(emSocket.getInputStream()));
                 String message = in.readLine();
                 handleInput(message);
                 emSocket.close();
+                consoleLock.unlock();
             }
          } catch (IOException e) {
             e.printStackTrace();
@@ -38,11 +44,13 @@ public class AgentListenerThread implements Runnable {
     }
     
     private void handleInput(String message) {
+        // consoleLock.lock();
         System.out.println("Message received: " + message);
 
-        switch (message.split(" ")[0]) {
+        String[] messageChunks = message.split("&");
+        switch (messageChunks[0]) {
             case "id":
-                String id = message.split(" ")[1];
+                String id = messageChunks[1];
                 
                 try (BufferedWriter fileWriter = new BufferedWriter(new FileWriter(idFile))) {
                     fileWriter.write(id);
@@ -54,9 +62,18 @@ public class AgentListenerThread implements Runnable {
                 
                 break;
         
+            case "topics":
+                System.out.println("Available topics: ");
+                for (int i = 1; i < messageChunks.length; i++) {
+                    String[] topicElements = messageChunks[i].split(";");
+                    System.out.println("\t" + topicElements[0] + "\t" + topicElements[1]);
+                }
+                break;
+
             default:
                 break;
         }
+        // consoleLock.unlock();
     }
 
 }
