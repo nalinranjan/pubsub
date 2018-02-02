@@ -1,12 +1,11 @@
 package edu.rit.CSCI652.impl;
 
-import edu.rit.CSCI652.demo.Event;
 import edu.rit.CSCI652.demo.Publisher;
 import edu.rit.CSCI652.demo.Subscriber;
-import edu.rit.CSCI652.demo.Topic;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class PubSubAgent implements Publisher, Subscriber{
 
@@ -17,6 +16,8 @@ public class PubSubAgent implements Publisher, Subscriber{
 	private int listenPort;
 	private int agentId;
 	private BufferedReader stdIn;
+
+	ReentrantLock consoleLock = new ReentrantLock();
 
 	public PubSubAgent() {
 		try {
@@ -39,7 +40,7 @@ public class PubSubAgent implements Publisher, Subscriber{
 			}
 		}
 
-		new Thread(new AgentListenerThread(listenPort, ID_FILE)).start();
+		new Thread(new AgentListenerThread(listenPort, ID_FILE, consoleLock)).start();
 
 		if (agentId == -1) {
 			register();
@@ -60,13 +61,14 @@ public class PubSubAgent implements Publisher, Subscriber{
 	}
 
 	private void register() {
-		sendMessage("register " + listenPort);
+		sendMessage("register&" + listenPort);
 	}
 
 	private void startCli() {
 		stdIn = new BufferedReader(new InputStreamReader(System.in));
 
 		while (true) {
+			consoleLock.lock();
 			System.out.println("Please select an option: ");
 			System.out.println("1. View avaiable topics");
 			System.out.println("2. Subscribe to a topic");
@@ -76,6 +78,7 @@ public class PubSubAgent implements Publisher, Subscriber{
 			System.out.println("6. Advertise a new topic");
 			System.out.println("7. Publish an article");
 			System.out.println("8. View notifications");
+			System.out.println("9. Quit");
 			System.out.print("\n> ");
 
 			int selection = 0;
@@ -119,12 +122,15 @@ public class PubSubAgent implements Publisher, Subscriber{
 					publish();
 					break;
 				
+				case 9:
+					System.exit(0);
+
 				default:
 					break;
 			}
-		}
 
-		// stdIn.close();
+			consoleLock.unlock();
+		}
 	}
 
 	public void listAllTopics() {
@@ -133,7 +139,7 @@ public class PubSubAgent implements Publisher, Subscriber{
 
 	@Override
 	public void subscribe() {
-		String message = "subscribe ";
+		String message = "subscribe&" + agentId + "&";
 		System.out.println("\nEnter topic ID: ");
 		try {
 			message += Integer.parseInt(stdIn.readLine());
@@ -147,7 +153,7 @@ public class PubSubAgent implements Publisher, Subscriber{
 
 	@Override
 	public void unsubscribe() {
-		String message = "unsubscribe ";
+		String message = "unsubscribe&" + agentId + "&";
 		System.out.println("\nEnter topic ID: ");
 		try {
 			message += Integer.parseInt(stdIn.readLine());
@@ -161,25 +167,37 @@ public class PubSubAgent implements Publisher, Subscriber{
 
 	@Override
 	public void unsubscribeAll() {
-		sendMessage("unsubscribeall");		
+		sendMessage("unsubscribeall&" + agentId);
 	}
 
 	@Override
 	public void listSubscribedTopics() {
-		sendMessage("subtopics");
+		sendMessage("subscribedtopics&" + agentId);
 	}
 
 	@Override
 	public void publish() {
-		// TODO Auto-generated method stub
-		
+		String message = "publish&";
+		try {
+			System.out.println("\nEnter title: ");
+			message += stdIn.readLine() + "&";
+			System.out.println("\nEnter topic ID: ");
+			message += stdIn.readLine() + "&";
+			System.out.println("\nEnter article contents: ");
+			message += stdIn.readLine(); 
+			sendMessage(message);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
 	public void advertise() {
-		String message = "advertise ";
-		System.out.println("\nEnter topic name: ");
+		String message = "advertise&";
 		try {
+			System.out.println("\nEnter topic name: ");
+			message += stdIn.readLine() + "&";
+			System.out.println("\nEnter keywords: ");
 			message += stdIn.readLine(); 
 			sendMessage(message);
 		} catch (IOException e) {
@@ -190,5 +208,4 @@ public class PubSubAgent implements Publisher, Subscriber{
 	public static void main(String[] args) {
 		PubSubAgent agent = new PubSubAgent();
 	}
-	
 }
