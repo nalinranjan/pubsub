@@ -23,7 +23,9 @@ public class AgentListenerThread implements Runnable {
     @Override
     public void run() {
         try (ServerSocket agentlistenerSocket = new ServerSocket(port)) {
+            consoleLock.lock();
             System.out.println("Listening on port " + port + "...");
+            consoleLock.unlock();
 
             while (true) {
                 consoleLock.lock();

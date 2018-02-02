@@ -17,7 +17,7 @@ public class PubSubAgent implements Publisher, Subscriber{
 	private int agentId;
 	private BufferedReader stdIn;
 
-	ReentrantLock consoleLock = new ReentrantLock();
+	ReentrantLock consoleLock = new ReentrantLock(true);
 
 	public PubSubAgent() {
 		try {
@@ -140,7 +140,7 @@ public class PubSubAgent implements Publisher, Subscriber{
 	@Override
 	public void subscribe() {
 		String message = "subscribe&" + agentId + "&";
-		System.out.println("\nEnter topic ID: ");
+		System.out.print("\nEnter topic ID: ");
 		try {
 			message += Integer.parseInt(stdIn.readLine());
 			sendMessage(message);
@@ -154,7 +154,7 @@ public class PubSubAgent implements Publisher, Subscriber{
 	@Override
 	public void unsubscribe() {
 		String message = "unsubscribe&" + agentId + "&";
-		System.out.println("\nEnter topic ID: ");
+		System.out.print("\nEnter topic ID: ");
 		try {
 			message += Integer.parseInt(stdIn.readLine());
 			sendMessage(message);
@@ -179,11 +179,11 @@ public class PubSubAgent implements Publisher, Subscriber{
 	public void publish() {
 		String message = "publish&";
 		try {
-			System.out.println("\nEnter title: ");
+			System.out.print("\nEnter title: ");
 			message += stdIn.readLine() + "&";
-			System.out.println("\nEnter topic ID: ");
+			System.out.print("\nEnter topic ID: ");
 			message += stdIn.readLine() + "&";
-			System.out.println("\nEnter article contents: ");
+			System.out.print("\nEnter article contents: ");
 			message += stdIn.readLine(); 
 			sendMessage(message);
 		} catch (IOException e) {
@@ -195,9 +195,9 @@ public class PubSubAgent implements Publisher, Subscriber{
 	public void advertise() {
 		String message = "advertise&";
 		try {
-			System.out.println("\nEnter topic name: ");
+			System.out.print("\nEnter topic name: ");
 			message += stdIn.readLine() + "&";
-			System.out.println("\nEnter keywords: ");
+			System.out.print("\nEnter keywords: ");
 			message += stdIn.readLine(); 
 			sendMessage(message);
 		} catch (IOException e) {
