@@ -18,12 +18,15 @@ public class EventManager {
 
 	public static AtomicInteger agentSeed = new AtomicInteger();
 	public static AtomicInteger topicSeed = new AtomicInteger();
+	public static AtomicInteger eventSeed = new AtomicInteger();
 	// mapping of agent id to its port and ip
 	public static Map<Integer, List<String>> portMap = new HashMap<>();
 	// mapping of topic id to list of subscriber ids
 	public static Map<Integer, HashSet<Integer>> topicMap = new HashMap<>();
-	// when creating new topic, add to topicMap like topicMap.put("newtopicid", new HashSet<Integer>())
+	// mapping of topic name to topic object
 	public static Map<String, Topic> topics = new HashMap<>();
+	// keep track of all events so far
+	public static List<Event> events = new ArrayList<>();
 	/*
 	 * Register a PubSub Agent for the first time
 	 */
@@ -104,10 +107,18 @@ public class EventManager {
 					// send content to all subscribers
 					int topicID = Integer.parseInt(messageChunked[1]);
 					String content = messageChunked[2];
-					// iterate to send to every subscriber
-					Set<Integer> subscribers = topicMap.get(topicID);
-					for (Integer s: subscribers)
-						this.sendMessage(s, content);
+					String[] contentChunked = content.split(";"); // check if ; is the delimiter
+					String name = new String();
+					for (String t: topics.keySet()) {
+						if (topics.get(t).getID() == topicID) {
+							name = t;
+							break;
+						}
+					}
+					Event article = new Event(eventSeed.getAndIncrement(), topics.get(name),
+											  contentChunked[0], contentChunked[1]);
+					this.notifySubscribers(article);
+					// confirm message? how? (don't know agentID)
 					break;
 				}
 				
@@ -116,14 +127,14 @@ public class EventManager {
 					int agentID = Integer.parseInt(messageChunked[1]);
 					int topicID = Integer.parseInt(messageChunked[2]);
 					this.addSubscriber(agentID, topicID);
+					this.sendMessage(agentID, "confirmed subscribe");
 					break;
 				}
 
 				case "subscribedtopics":	{	//subscribedtopics&<id>
-					// send a list of all topics available
-					// does the event manager have to maintain a list of topics by name ??!
 					int agentID = Integer.parseInt(messageChunked[1]);
-
+					this.listSubscribedTopics(agentID);
+					// does this need a confirmation too? agent knows it worked upon seeing list anyway
 					break;
 				}
 
@@ -131,18 +142,19 @@ public class EventManager {
 					int agentID = Integer.parseInt(messageChunked[1]);
 					int topicID = Integer.parseInt(messageChunked[2]);
 					this.removeSubscriber(agentID, topicID);
-					// acknowledge unsubscribed "confirm unsubscribe"
+					this.sendMessage(agentID, "confirmed unsubscribe");
 					break;
 				}
 
 				case "unsubscribeall":	{	// unsubscribeall&<id>
-
+					int agentID = Integer.parseInt(messageChunked[1]);
+					this.unsubscribeAll(agentID);
+					this.sendMessage(agentID, "confirmed unsubscribeall");
 					break;
 				}
 
-				case "advertise": {	// advertise <topicName> <keywordsList> 	
-					// create topic 
-					// verify topic doesn't already exist
+				case "advertise": {	// advertise&<topicName>&<keywordsList> 	
+					System.out.println("got message okay: " + message);
 					String topicName = messageChunked[1].toLowerCase();
 					String[] keywordsList = messageChunked[2].split("\\s+");
 					this.addTopic(topicName, keywordsList);
@@ -165,7 +177,15 @@ public class EventManager {
 	 * notify all subscribers of new event 
 	 */
 	private void notifySubscribers(Event event) {
-		
+		String name = event.getTopic().getName();
+		String title = event.getTitle();
+		String content = event.getContent();
+		int topicID = event.getTopic().getID();
+		// construct message
+		String message = new String("article" + "&" + name + "&" + title + "&" + content);
+		Set<Integer> subscribers = topicMap.get(topicID);
+		for (Integer s: subscribers)
+			this.sendMessage(s, message);
 	}
 	
 	/*
@@ -195,17 +215,17 @@ public class EventManager {
 	/*
 	 * remove subscriber from the list
 	 */
-	private void removeSubscriber(int agentID, int topicID){
-		if (topicMap.containsKey(topicID)) {
-			if (topicMap.get(topicID).contains(agentID)) 
-				topicMap.get(topicID).remove(agentID);
+	private void removeSubscriber(int agent, int topic){
+		if (topicMap.containsKey(topic)) {
+			if (topicMap.get(topic).contains(agent)) 
+				topicMap.get(topic).remove(agent);
 		}
 	}
 	
 
-	private void unsubscribeAll(int agentID) {
+	private void unsubscribeAll(int agent) {
 		for (int t: topicMap.keySet())
-			this.removeSubscriber(agentID, t);
+			this.removeSubscriber(agent, t);
 	}
 
 	private void advertise(int topicID) {
@@ -223,6 +243,16 @@ public class EventManager {
 		for (Integer agent: agents) {
 			this.sendMessage(agent, message);
 		}
+	}
+
+	private void listSubscribedTopics(int agent) {
+		String subscribedTopics = new String("subscribedtopics" + "&");
+		for (String t: topics.keySet()) {
+			int topicID = topics.get(t).getID();
+			if (topicMap.get(topicID).contains(agent))
+				subscribedTopics = new String(subscribedTopics + t + "," + topicID + ";");
+		}
+		this.sendMessage(agent, subscribedTopics);
 	}
 
 
