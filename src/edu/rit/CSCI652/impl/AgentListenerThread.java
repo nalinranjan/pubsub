@@ -81,7 +81,7 @@ public class AgentListenerThread implements Runnable {
             case "article":
                 System.out.println("New article published under " + messageChunks[2]);
                 System.out.println("\n" + messageChunks[1] + "\n");
-                System.out.println(messageChunks[2]);
+                System.out.println(messageChunks[2]); // messageChunks[3] ?
                 break;
             
             case "advertisement":

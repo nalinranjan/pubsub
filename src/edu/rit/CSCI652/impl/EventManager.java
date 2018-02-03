@@ -122,7 +122,7 @@ public class EventManager {
 					break;
 				}
 				
-				case "subscribe":	{// subscribe&<id>&<topicId>
+				case "subscribe":	{	// subscribe&<id>&<topicId>
 					// add agent to the list of subscribers of topic
 					int agentID = Integer.parseInt(messageChunked[1]);
 					int topicID = Integer.parseInt(messageChunked[2]);
@@ -131,7 +131,7 @@ public class EventManager {
 					break;
 				}
 
-				case "subscribedtopics":	{	//subscribedtopics&<id>
+				case "subscribedtopics":	{	// subscribedtopics&<id>
 					int agentID = Integer.parseInt(messageChunked[1]);
 					this.listSubscribedTopics(agentID);
 					// does this need a confirmation too? agent knows it worked upon seeing list anyway
@@ -154,7 +154,6 @@ public class EventManager {
 				}
 
 				case "advertise": {	// advertise&<topicName>&<keywordsList> 	
-					System.out.println("got message okay: " + message);
 					String topicName = messageChunked[1].toLowerCase();
 					String[] keywordsList = messageChunked[2].split("\\s+");
 					this.addTopic(topicName, keywordsList);
@@ -230,8 +229,15 @@ public class EventManager {
 
 	private void advertise(int topicID) {
 		// construct message with topic name and keywords
-		Topic t = topics.get(topicID);
-		String message = new String("advertisement" + "&" + t.getName() + "&");	// what 
+		String name = new String();
+		for (String t: topics.keySet()) {
+			if (topics.get(t).getID() == topicID) {
+				name = t;
+				break;
+			}
+		}
+		Topic t = topics.get(name);
+		String message = new String("advertisement" + "&" + t.getName() + "&");
 		for (String word: t.getKeywords()) 
 			message = new String(message + word + " ");
 		// get all agents
@@ -245,7 +251,7 @@ public class EventManager {
 		}
 	}
 
-	private void listSubscribedTopics(int agent) {
+	private void listSubscribedTopics(int agent) {	// debug here
 		String subscribedTopics = new String("subscribedtopics" + "&");
 		for (String t: topics.keySet()) {
 			int topicID = topics.get(t).getID();
