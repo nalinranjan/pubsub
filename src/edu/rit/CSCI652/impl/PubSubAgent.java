@@ -18,8 +18,39 @@ public class PubSubAgent implements Publisher, Subscriber{
 	private BufferedReader stdIn;
 
 	ReentrantLock consoleLock = new ReentrantLock(true);
+	Object registerLock = new Object();
 
 	public PubSubAgent() {
+		readIdFile();
+
+		if (listenPort == 0) {
+			try (ServerSocket freeSocket = new ServerSocket(0)) {
+				listenPort = freeSocket.getLocalPort();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		new Thread(new AgentListenerThread(listenPort, ID_FILE, consoleLock, registerLock)).start();
+
+		if (agentId == -1) {
+			register();
+			System.out.println("Registering with Event Manager...");
+		}
+
+		synchronized (registerLock) {
+			try {
+				registerLock.wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+
+		readIdFile();
+		startCli();
+	}
+
+	private void readIdFile() {
 		try {
 			BufferedReader fileReader = new BufferedReader(new FileReader(ID_FILE));
 			agentId = Integer.parseInt(fileReader.readLine());
@@ -31,22 +62,6 @@ public class PubSubAgent implements Publisher, Subscriber{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
-		if (listenPort == 0) {
-			try (ServerSocket freeSocket = new ServerSocket(0)) {
-				listenPort = freeSocket.getLocalPort();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
-		new Thread(new AgentListenerThread(listenPort, ID_FILE, consoleLock)).start();
-
-		if (agentId == -1) {
-			register();
-		}
-
-		startCli();
 	}
 
 	private void sendMessage(String message) {
@@ -58,6 +73,8 @@ public class PubSubAgent implements Publisher, Subscriber{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
+		System.out.println("Message sent: " + message);
 	}
 
 	private void register() {
@@ -68,6 +85,11 @@ public class PubSubAgent implements Publisher, Subscriber{
 		stdIn = new BufferedReader(new InputStreamReader(System.in));
 
 		while (true) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 			consoleLock.lock();
 			System.out.println("Please select an option: ");
 			System.out.println("1. View avaiable topics");

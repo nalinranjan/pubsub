@@ -13,11 +13,13 @@ public class AgentListenerThread implements Runnable {
     private String idFile;
 
     ReentrantLock consoleLock;
+    Object registerLock;
     
-    public AgentListenerThread(int port, String idFile, ReentrantLock consoleLock) {
+    public AgentListenerThread(int port, String idFile, ReentrantLock consoleLock, Object registerLock) {
         this.port = port;
         this.idFile = idFile;
         this.consoleLock = consoleLock;
+        this.registerLock = registerLock;
     }
 
     @Override
@@ -28,8 +30,8 @@ public class AgentListenerThread implements Runnable {
             consoleLock.unlock();
 
             while (true) {
-                consoleLock.lock();
                 Socket emSocket = agentlistenerSocket.accept();
+                consoleLock.lock();
                 BufferedReader in = new BufferedReader(new InputStreamReader(emSocket.getInputStream()));
                 String message = in.readLine();
                 handleInput(message);
@@ -56,6 +58,10 @@ public class AgentListenerThread implements Runnable {
                     fileWriter.write(port + "");
                 } catch (IOException e) {
                     e.printStackTrace();
+                }
+
+                synchronized (registerLock) {
+                    registerLock.notify();
                 }
                 
                 break;
