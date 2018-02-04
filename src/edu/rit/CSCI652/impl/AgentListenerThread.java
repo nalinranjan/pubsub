@@ -60,7 +60,7 @@ public class AgentListenerThread implements Runnable {
                 
                 break;
         
-            case "topics":
+            case "topics": // topics&topicId;topicName&topicId;topicName&...
                 System.out.println("Available topics: ");
                 for (int i = 1; i < messageChunks.length; i++) {
                     String[] topicElements = messageChunks[i].split(";");
@@ -68,11 +68,11 @@ public class AgentListenerThread implements Runnable {
                 }
                 break;
 
-            case "confirm":
+            case "confirmed": // confirmed&message
                 System.out.println(messageChunks[1]);
                 break;
 
-            case "subscribedtopics":
+            case "subscribedtopics": // subscribedtopics&topicId;topicName&topicId;topicName&...
                 System.out.println("Subscribed topics: ");
                 for (int i = 1; i < messageChunks.length; i++) {
                     String[] topicElements = messageChunks[i].split(";");
@@ -80,16 +80,16 @@ public class AgentListenerThread implements Runnable {
                 }
                 break;
 
-            case "article":
+            case "article": // article&title&topic&contents
                 System.out.println("New article published under " + messageChunks[2]);
                 System.out.println("\n" + messageChunks[1] + "\n");
-                System.out.println(messageChunks[2]); // messageChunks[3] ?
+                System.out.println(messageChunks[3]);
                 break;
             
-            case "advertisement":
+            case "advertisement": // advertisement&topicId&topicName&keywords
                 System.out.println("New topic created: ");
-                System.out.println("\t" + messageChunks[0] + "\t" + messageChunks[1]);
-                System.out.println("Keywords: " + String.join(" ", messageChunks[2].split(";")));
+                System.out.println("\t" + messageChunks[1] + "\t" + messageChunks[2]);
+                System.out.println("Keywords: " + String.join(" ", messageChunks[3].split(";")));
                 break;
 
             default:
