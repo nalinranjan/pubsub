@@ -198,7 +198,7 @@ public class EventManager {
     /*
      * add new topic when received advertisement of new topic
      */
-    private void addTopic(String topicName, String[] keywords){
+    private synchronized void addTopic(String topicName, String[] keywords){
         if (!topics.containsKey(topicName)) {
             List<String> keywordsList = new ArrayList<>(Arrays.asList(keywords));
             // List<String> keywordsList = new ArrayList<>();
@@ -216,7 +216,7 @@ public class EventManager {
     /*
      * add subscriber to the internal list
      */
-    private void addSubscriber(int agentID, int topicID){
+    private synchronized void addSubscriber(int agentID, int topicID){
         // List<String> subscriberInfo = portMap.get(agentID);
         if (topicMap.containsKey(topicID)) {
             topicMap.get(topicID).add(agentID);
@@ -226,14 +226,14 @@ public class EventManager {
     /*
      * remove subscriber from the list
      */
-    private void removeSubscriber(int agent, int topic){
+    private synchronized void removeSubscriber(int agent, int topic){
         if (topicMap.containsKey(topic)) {
             if (topicMap.get(topic).contains(agent)) 
                 topicMap.get(topic).remove(agent);
         }
     }
     
-    private void unsubscribeAll(int agent) {
+    private synchronized void unsubscribeAll(int agent) {
         for (int t: topicMap.keySet())
             this.removeSubscriber(agent, t);
     }
