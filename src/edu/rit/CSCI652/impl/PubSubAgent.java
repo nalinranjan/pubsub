@@ -134,7 +134,7 @@ public class PubSubAgent implements Publisher, Subscriber{
 	}
 
 	public void listAllTopics() {
-		sendMessage("topics");
+		sendMessage("topics&" + agentId);
 	}
 
 	@Override
