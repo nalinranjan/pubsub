@@ -60,9 +60,6 @@ public class EventManager {
     private Socket getOutputSocket(int clientId) {
         List<String> clientInfo = portMap.get(clientId);
         Socket clientSocket = null;
-        for (String c : clientInfo) {
-            System.out.println(c);
-        }
         try {
             clientSocket = new Socket(InetAddress.getByName(clientInfo.get(0).split("/")[1]), 
                                     Integer.parseInt(clientInfo.get(1)));
