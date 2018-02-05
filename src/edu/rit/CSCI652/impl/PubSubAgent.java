@@ -36,13 +36,12 @@ public class PubSubAgent implements Publisher, Subscriber{
 		if (agentId == -1) {
 			register();
 			System.out.println("Registering with Event Manager...");
-		}
-
-		synchronized (registerLock) {
-			try {
-				registerLock.wait();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+			synchronized (registerLock) {
+				try {
+					registerLock.wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 
