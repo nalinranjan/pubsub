@@ -1,0 +1,2 @@
+javac -d bin -cp src src/edu/rit/CSCI652/demo/*
+javac -d bin -cp src src/edu/rit/CSCI652/impl/*
