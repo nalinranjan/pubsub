@@ -26,6 +26,9 @@ public class EventManager {
     public static Map<String, Topic> topics = new HashMap<>();
     // keep track of all events so far
     public static List<Event> events = new ArrayList<>();
+    // keep track of undelivered messages
+    private static Map<Integer, List<String>> pendingMessages = new HashMap<>();
+
     /*
      * Register a PubSub Agent for the first time
      */
@@ -72,15 +75,33 @@ public class EventManager {
     private void sendMessage(int clientId, String message) {
         Socket clientSocket = getOutputSocket(clientId);
         try {
-            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);					
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+
+            if (pendingMessages.containsKey(clientId)) {
+                for (String m : pendingMessages.get(clientId)) {
+                    out.println(m);
+                }
+                pendingMessages.remove(clientId);
+            }
+
             out.println(message);
             out.close();
             clientSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (NullPointerException e) {
+            saveMessage(clientId, message);
         }
 
         System.out.println("Message sent to agent " + clientId + ": " + message);
+    }
+
+    private void saveMessage(int clientId, String message) {
+        if (!pendingMessages.containsKey(clientId)) {
+            pendingMessages.put(clientId, new ArrayList<String>());
+        }
+
+        pendingMessages.get(clientId).add(message);
     }
 
     private void handleInput(Socket clientSocket) {
