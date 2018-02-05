@@ -105,7 +105,7 @@ public class EventManager {
     }
 
     private void handleInput(Socket clientSocket) {
-        System.out.println("Handling input from " + clientSocket.getLocalAddress());
+        System.out.println("Handling input from " + clientSocket.getInetAddress());
 
         try (
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
