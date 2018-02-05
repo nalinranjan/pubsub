@@ -75,7 +75,7 @@ public class AgentListenerThread implements Runnable {
                 break;
 
             case "confirmed": // confirmed&message
-                System.out.println(messageChunks[1]);
+                System.out.println("\n" + messageChunks[1]);
                 break;
 
             case "subscribedtopics": // subscribedtopics&topicId;topicName&topicId;topicName&...
