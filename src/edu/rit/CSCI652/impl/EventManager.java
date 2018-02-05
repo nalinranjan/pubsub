@@ -116,7 +116,7 @@ public class EventManager {
             switch(messageChunked[0]) {
                 case "register":	{
                     String port = messageChunked[PORT_INDEX];
-                    int clientId = this.registerAgent(port, clientSocket.getLocalAddress());
+                    int clientId = this.registerAgent(port, clientSocket.getInetAddress());
                     sendMessage(clientId, "id&" + clientId);
                     break;
                 }
