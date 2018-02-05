@@ -214,6 +214,7 @@ public class EventManager {
         for (Integer s: subscribers) {
             this.sendMessage(s, message);
         }
+        events.add(event);
     }
     
     /*
@@ -222,14 +223,9 @@ public class EventManager {
     private synchronized void addTopic(String topicName, String[] keywords){
         if (!topics.containsKey(topicName)) {
             List<String> keywordsList = new ArrayList<>(Arrays.asList(keywords));
-            // List<String> keywordsList = new ArrayList<>();
-            // for (String k: keywords) {
-            //     keywordsList.add(k);
-            // }
             Topic newTopic = new Topic(topicSeed.getAndIncrement(), new String(topicName), keywordsList);
             topics.put(topicName, newTopic);
             topicMap.put(newTopic.getID(), new HashSet<Integer>());
-            // this.advertise(newTopic.getID());
             advertiseTopic(newTopic);
         }
     }
@@ -257,30 +253,6 @@ public class EventManager {
     private synchronized void unsubscribeAll(int agent) {
         for (int t: topicMap.keySet())
             this.removeSubscriber(agent, t);
-    }
-
-    private void advertise(int topicID) {
-        // construct message with topic name and keywords
-        String name = new String();
-        for (String t: topics.keySet()) {
-            if (topics.get(t).getID() == topicID) {
-                name = t;
-                break;
-            }
-        }
-        Topic t = topics.get(name);
-        String message = new String("advertisement" + "&" + t.getName() + "&");
-        for (String word: t.getKeywords()) 
-            message = new String(message + word + " ");
-        // get all agents
-        Set<Integer> agents = new HashSet<>();
-        for (Integer id: topicMap.keySet()) {
-            agents.addAll(topicMap.get(id));
-        }
-        // send to all agents - message type "advertisement"
-        for (Integer agent: agents) {
-            this.sendMessage(agent, message);
-        }
     }
 
     private void advertiseTopic(Topic topic) {
