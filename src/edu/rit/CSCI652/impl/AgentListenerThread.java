@@ -44,9 +44,20 @@ public class AgentListenerThread implements Runnable {
     }
     
     private void handleInput(String message) {
-        // consoleLock.lock();
         System.out.println("Message received: " + message);
 
+        String[] messageChunks = message.split("^");
+        if (messageChunks[0].equals("multi")) {
+            for (int i = 1; i < messageChunks.length; i++) {
+                parseMessage(messageChunks[i]);
+            }
+        }
+        else {
+            parseMessage(message);
+        }
+    }
+
+    private void parseMessage(String message) {
         String[] messageChunks = message.split("&");
         switch (messageChunks[0]) {
             case "id":
@@ -101,7 +112,6 @@ public class AgentListenerThread implements Runnable {
             default:
                 break;
         }
-        // consoleLock.unlock();
     }
 
 }

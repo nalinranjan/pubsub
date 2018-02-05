@@ -81,10 +81,12 @@ public class EventManager {
             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
 
             if (pendingMessages.containsKey(clientId)) {
+                String newMessage = "multi^";
                 for (String m : pendingMessages.get(clientId)) {
-                    out.println(m);
+                    newMessage += m + "^";
                 }
                 pendingMessages.remove(clientId);
+                message = newMessage + message;
             }
 
             out.println(message);
