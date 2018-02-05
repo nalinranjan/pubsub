@@ -92,14 +92,15 @@ public class PubSubAgent implements Publisher, Subscriber{
 			consoleLock.lock();
 			System.out.println("Please select an option: ");
 			System.out.println("1. View avaiable topics");
-			System.out.println("2. Subscribe to a topic");
-			System.out.println("3. List subsribed topics");
-			System.out.println("4. Unsubscribe from a topic");
-			System.out.println("5. Unsubscribe from all topics");
-			System.out.println("6. Advertise a new topic");
-			System.out.println("7. Publish an article");
-			System.out.println("8. View notifications");
-			System.out.println("9. Quit");
+			System.out.println("2. Subscribe by topic");
+			System.out.println("3. Subscribe by keyword");
+			System.out.println("4. List subscribed topics");
+			System.out.println("5. Unsubscribe from a topic");
+			System.out.println("6. Unsubscribe from all topics");
+			System.out.println("7. Advertise a new topic");
+			System.out.println("8. Publish an article");
+			System.out.println("9. View notifications");
+			System.out.println("10. Quit");
 			System.out.print("\n> ");
 
 			int selection = 0;
@@ -122,28 +123,32 @@ public class PubSubAgent implements Publisher, Subscriber{
 				case 2:
 					subscribe();
 					break;
-
+				
 				case 3:
+					subscribeKeyword();
+					break;
+
+				case 4:
 					listSubscribedTopics();
 					break;
 				
-				case 4:
+				case 5:
 					unsubscribe();
 					break;
 
-				case 5:
+				case 6:
 					unsubscribeAll();
 					break;
 
-				case 6:
+				case 7:
 					advertise();
 					break;
 
-				case 7:
+				case 8:
 					publish();
 					break;
 				
-				case 9:
+				case 10:
 					System.exit(0);
 
 				default:
@@ -164,6 +169,20 @@ public class PubSubAgent implements Publisher, Subscriber{
 		System.out.print("\nEnter topic ID: ");
 		try {
 			message += Integer.parseInt(stdIn.readLine());
+			sendMessage(message);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (NumberFormatException e) {
+			System.out.print("\nInvalid input. ");
+		}
+	}
+
+	@Override
+	public void subscribeKeyword() {
+		String message = "subscribekeyword&" + agentId + "&";
+		System.out.print("\nEnter keyword: ");
+		try {
+			message += stdIn.readLine();
 			sendMessage(message);
 		} catch (IOException e) {
 			e.printStackTrace();

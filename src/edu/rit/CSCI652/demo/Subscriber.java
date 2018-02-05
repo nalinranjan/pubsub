@@ -5,6 +5,11 @@ public interface Subscriber {
 	 * subscribe to a topic
 	 */
 	public void subscribe();
+
+	/*
+	 * subscribe by keyword
+	 */
+	public void subscribeKeyword();
 	
 	/*
 	 * unsubscribe from a topic 
