@@ -1,6 +1,7 @@
 package edu.rit.CSCI652.impl;
 
 
+import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -66,9 +67,11 @@ public class EventManager {
         try {
             clientSocket = new Socket(InetAddress.getByName(clientInfo.get(0).split("/")[1]), 
                                     Integer.parseInt(clientInfo.get(1)));
+        } catch (ConnectException e) {
+            System.out.println("Agent " + clientId + " not online. Saving message.");
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        } 
         return clientSocket;
     }
 
