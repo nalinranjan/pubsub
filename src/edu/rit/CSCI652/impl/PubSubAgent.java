@@ -90,7 +90,7 @@ public class PubSubAgent implements Publisher, Subscriber{
 				e.printStackTrace();
 			}
 			consoleLock.lock();
-			System.out.println("Please select an option: ");
+			System.out.println("\nPlease select an option: ");
 			System.out.println("1. View avaiable topics");
 			System.out.println("2. Subscribe by topic");
 			System.out.println("3. Subscribe by keyword");

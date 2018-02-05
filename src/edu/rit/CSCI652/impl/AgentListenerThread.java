@@ -67,7 +67,7 @@ public class AgentListenerThread implements Runnable {
                 break;
         
             case "topics": // topics&topicId;topicName&topicId;topicName&...
-                System.out.println("Available topics: ");
+                System.out.println("\nAvailable topics: ");
                 for (int i = 1; i < messageChunks.length; i++) {
                     String[] topicElements = messageChunks[i].split(";");
                     System.out.println("\t" + topicElements[0] + "\t" + topicElements[1]);
@@ -79,7 +79,7 @@ public class AgentListenerThread implements Runnable {
                 break;
 
             case "subscribedtopics": // subscribedtopics&topicId;topicName&topicId;topicName&...
-                System.out.println("Subscribed topics: ");
+                System.out.println("\nSubscribed topics: ");
                 for (int i = 1; i < messageChunks.length; i++) {
                     String[] topicElements = messageChunks[i].split(";");
                     System.out.println("\t" + topicElements[0] + "\t" + topicElements[1]);
@@ -87,13 +87,13 @@ public class AgentListenerThread implements Runnable {
                 break;
 
             case "article": // article&title&topic&contents
-                System.out.println("New article published under " + messageChunks[2]);
+                System.out.println("\nNew article published under " + messageChunks[2]);
                 System.out.println("\n" + messageChunks[1] + "\n");
                 System.out.println(messageChunks[3]);
                 break;
             
             case "advertisement": // advertisement&topicId&topicName&keywords
-                System.out.println("New topic created: ");
+                System.out.println("\nNew topic created: ");
                 System.out.println("\t" + messageChunks[1] + "\t" + messageChunks[2]);
                 System.out.println("Keywords: " + String.join(" ", messageChunks[3].split(";")));
                 break;

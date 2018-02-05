@@ -128,18 +128,18 @@ public class EventManager {
                     // send content to all subscribers
                     int topicID = Integer.parseInt(messageChunked[2]);
                     String content = messageChunked[3];
-                    // String[] contentChunked = content.split(";"); // check if ; is the delimiter
-                    String name = new String();
+                    String name = null;
                     for (String t: topics.keySet()) {
                         if (topics.get(t).getID() == topicID) {
                             name = t;
                             break;
                         }
                     }
-                    Event article = new Event(eventSeed.getAndIncrement(), topics.get(name),
-                                              messageChunked[1], content);
-                    this.notifySubscribers(article);
-                    // confirm message? how? (don't know agentID)
+                    if (name != null) {
+                        Event article = new Event(eventSeed.getAndIncrement(), topics.get(name),
+                                                  messageChunked[1], content);
+                        this.notifySubscribers(article);
+                    }
                     break;
                 }
                 
@@ -147,8 +147,14 @@ public class EventManager {
                     // add agent to the list of subscribers of topic
                     int agentID = Integer.parseInt(messageChunked[1]);
                     int topicID = Integer.parseInt(messageChunked[2]);
-                    this.addSubscriber(agentID, topicID);
-                    sendMessage(agentID, "confirmed&Subscribed successfully.");
+                    if (topicID < topicSeed.get()) {
+                        this.addSubscriber(agentID, topicID);
+                        sendMessage(agentID, "confirmed&Subscribed successfully.");
+                    }
+                    else {
+                        sendMessage(agentID, "confirmed&Invalid topic ID.");                        
+                    }
+                
                     break;
                 }
 
