@@ -142,6 +142,7 @@ public class EventManager {
                                                   messageChunked[1], content);
                         this.notifySubscribers(article);
                     }
+
                     break;
                 }
                 
@@ -169,7 +170,6 @@ public class EventManager {
                 case "subscribedtopics":	{	// subscribedtopics&<id>
                     int agentID = Integer.parseInt(messageChunked[1]);
                     this.listSubscribedTopics(agentID);
-                    // does this need a confirmation too? agent knows it worked upon seeing list anyway
                     break;
                 }
 
@@ -185,6 +185,14 @@ public class EventManager {
                     int agentID = Integer.parseInt(messageChunked[1]);
                     this.unsubscribeAll(agentID);
                     sendMessage(agentID, "confirmed&Unsubscribed successfully.");
+                    break;
+                }
+
+                case "subscribekeyword": { // subscribekeyword&<agentid>&<keyword>
+                    int agentID = Integer.parseInt(messageChunked[1]);
+                    String keyword = messageChunked[2].toLowerCase();
+                    this.subscribeKeyword(agentID, keyword);
+                    sendMessage(agentID, "confirmed&Subscribed successfully.");
                     break;
                 }
 
@@ -208,7 +216,6 @@ public class EventManager {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     /*
@@ -244,11 +251,18 @@ public class EventManager {
     /*
      * add subscriber to the internal list
      */
-    private synchronized void addSubscriber(int agentID, int topicID){
+    private synchronized void addSubscriber(int agentID, int topicID) {
         // List<String> subscriberInfo = portMap.get(agentID);
         if (topicMap.containsKey(topicID)) {
             topicMap.get(topicID).add(agentID);
         }
+    }
+
+    private synchronized void subscribeKeyword(int agentID, String word) {
+        for (String topicName: topics.keySet())
+            for (String keyword: topics.get(topicName).getKeywords())
+                if (keyword.equals(word))
+                    this.addSubscriber(agentID, topics.get(topicName).getID());
     }
     
     /*
@@ -295,14 +309,6 @@ public class EventManager {
         this.sendMessage(agent, subscribedTopics);
     }
 
-
-    /*
-     * show the list of subscriber for a specified topic
-     *
-    private void showSubscribers(int topicID){
-    }*/
-    
-    
     public static void main(String[] args) {
         new EventManager().startService();
     }
