@@ -1,5 +1,9 @@
 package edu.rit.CSCI652.impl;
 
+/**
+ * PubSubAgent.java
+ */
+
 import edu.rit.CSCI652.demo.Publisher;
 import edu.rit.CSCI652.demo.Subscriber;
 import java.io.*;
@@ -7,6 +11,14 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * Class representing a Publish/Subscribe Agent. Acts as both publisher and
+ * subscriber.
+ * 
+ * @author	Nalin Ranjan
+ * @author	Sanchitha Seshadri
+ * 
+ */
 public class PubSubAgent implements Publisher, Subscriber{
 
 	private static String EM_ADDRESS = "localhost";
@@ -20,6 +32,10 @@ public class PubSubAgent implements Publisher, Subscriber{
 	ReentrantLock consoleLock = new ReentrantLock(true);
 	Object registerLock = new Object();
 
+	/**
+	 * Contructor. Registers with the Event Manager and prompts the user for
+	 * input.
+	 */
 	public PubSubAgent() {
 		readIdFile();
 
@@ -49,6 +65,9 @@ public class PubSubAgent implements Publisher, Subscriber{
 		startCli();
 	}
 
+	/**
+	 * Reads agent ID and port number from the ID file.
+	 */
 	private void readIdFile() {
 		try {
 			BufferedReader fileReader = new BufferedReader(new FileReader(ID_FILE));
@@ -63,6 +82,11 @@ public class PubSubAgent implements Publisher, Subscriber{
 		}
 	}
 
+	/**
+	 * Sends a message to the Event Manager.
+	 * 
+	 * @param	message		The message to be sent
+	 */
 	private void sendMessage(String message) {
 		try (
             Socket socket = new Socket(EM_ADDRESS, EM_PORT);
@@ -76,10 +100,16 @@ public class PubSubAgent implements Publisher, Subscriber{
 		System.out.println("Message sent: " + message);
 	}
 
+	/**
+	 * Registers a new agent with the Event Manager.
+	 */
 	private void register() {
 		sendMessage("register&" + listenPort);
 	}
 
+	/**
+	 * Prompts the user for input on the command line.
+	 */
 	private void startCli() {
 		stdIn = new BufferedReader(new InputStreamReader(System.in));
 
@@ -112,8 +142,6 @@ public class PubSubAgent implements Publisher, Subscriber{
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-
-			String message = "";
 
 			switch (selection) {
 				case 1:
@@ -159,11 +187,16 @@ public class PubSubAgent implements Publisher, Subscriber{
 		}
 	}
 
+	/**
+	 * Sends a request to list all available topics.
+	 */
 	public void listAllTopics() {
 		sendMessage("topics&" + agentId);
 	}
 
-	@Override
+	/**
+	 * Sends a request to subscribe to a topic by ID.
+	 */
 	public void subscribe() {
 		String message = "subscribe&" + agentId + "&";
 		System.out.print("\nEnter topic ID: ");
@@ -177,7 +210,9 @@ public class PubSubAgent implements Publisher, Subscriber{
 		}
 	}
 
-	@Override
+	/**
+	 * Sends a request to subscribe to topics by keyword.
+	 */
 	public void subscribeKeyword() {
 		String message = "subscribekeyword&" + agentId + "&";
 		System.out.print("\nEnter keyword: ");
@@ -191,7 +226,9 @@ public class PubSubAgent implements Publisher, Subscriber{
 		}
 	}
 
-	@Override
+	/**
+	 * Sends a request to unsubscribe from a topic.
+	 */
 	public void unsubscribe() {
 		String message = "unsubscribe&" + agentId + "&";
 		System.out.print("\nEnter topic ID: ");
@@ -205,17 +242,23 @@ public class PubSubAgent implements Publisher, Subscriber{
 		}
 	}
 
-	@Override
+	/**
+	 * Sends a request to unsubscribe from all topics.
+	 */
 	public void unsubscribeAll() {
 		sendMessage("unsubscribeall&" + agentId);
 	}
 
-	@Override
+	/**
+	 * Sends a request to list all subscribed topics.
+	 */
 	public void listSubscribedTopics() {
 		sendMessage("subscribedtopics&" + agentId);
 	}
 
-	@Override
+	/**
+	 * Publishes a new article.
+	 */
 	public void publish() {
 		String message = "publish&";
 		try {
@@ -231,7 +274,9 @@ public class PubSubAgent implements Publisher, Subscriber{
 		}
 	}
 
-	@Override
+	/**
+	 * Advertises a new topic.
+	 */
 	public void advertise() {
 		String message = "advertise&";
 		try {
@@ -245,6 +290,11 @@ public class PubSubAgent implements Publisher, Subscriber{
 		}
 	}
 
+	/**
+	 * Entry point of the program. Creates a new agent.
+	 * 
+	 * @param	args	Command-line arguments
+	 */
 	public static void main(String[] args) {
 		PubSubAgent agent = new PubSubAgent();
 	}
