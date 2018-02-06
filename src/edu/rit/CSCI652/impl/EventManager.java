@@ -353,7 +353,7 @@ public class EventManager {
         String subscribedTopics = new String("subscribedtopics");
         for (String t: topics.keySet()) {
             int topicID = topics.get(t).getID();
-            if (topicMap.get(topicID).contains(agent)) {
+            if (topicMap.get(topicID).contains(agentID)) {
                 subscribedTopics += "&" + topicID + ";" + t;
             }
         }
