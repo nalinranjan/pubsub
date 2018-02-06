@@ -12,6 +12,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import edu.rit.CSCI652.demo.Event;
 import edu.rit.CSCI652.demo.Topic;
 
+/**
+ * Event Manager that handles all pub/sub operations. 
+ */
 public class EventManager {
     private int PORT = 5000;
     private int PORT_INDEX = 1;
@@ -27,11 +30,13 @@ public class EventManager {
     public static Map<String, Topic> topics = new HashMap<>();
     // keep track of all events so far
     public static List<Event> events = new ArrayList<>();
-    // keep track of undelivered messages
+    // mapping of agentID to messages received while offline to keep track of undelivered messages 
     private static Map<Integer, List<String>> pendingMessages = new HashMap<>();
 
-    /*
+    /**
      * Register a PubSub Agent for the first time
+     * @param   port    port of the agent
+     * @param   ip      ip address of the agent
      */
     private int registerAgent(String port, InetAddress ip) {
         List<String> agentInfo = new ArrayList<String>();
@@ -42,7 +47,7 @@ public class EventManager {
         return agentSeed.getAndIncrement();
     }
 
-    /*
+    /**
      * Start the repo service
      */
     private void startService() {
@@ -61,6 +66,11 @@ public class EventManager {
         }
     }
 
+    /**
+     * Get the socket to connect with and talk to client on
+     * @param   clientId    unique ID assigned to the client upon registering  
+     * @return  clientSocket    Socket to connect with client 
+     */
     private Socket getOutputSocket(int clientId) {
         List<String> clientInfo = portMap.get(clientId);
         Socket clientSocket = null;
@@ -75,6 +85,11 @@ public class EventManager {
         return clientSocket;
     }
 
+    /**
+     * Send message to the client specified
+     * @param   clientId    unique ID assigned to the client upon registering
+     * @param   message     message to send to client
+     */
     private void sendMessage(int clientId, String message) {
         Socket clientSocket = getOutputSocket(clientId);
         try {
@@ -101,14 +116,24 @@ public class EventManager {
         System.out.println("Message sent to agent " + clientId + ": " + message);
     }
 
-    private void saveMessage(int clientId, String message) {
-        if (!pendingMessages.containsKey(clientId)) {
-            pendingMessages.put(clientId, new ArrayList<String>());
-        }
 
-        pendingMessages.get(clientId).add(message);
+    /**
+     * Save message if agent is offline
+     * @param   agentID     unique ID assigned to agent upon registering
+     * @param   message     message to be saved to send agent upon coming online
+     */
+    private void saveMessage(int agentID, String message) {
+        if (!pendingMessages.containsKey(agentID)) {
+            pendingMessages.put(agentID, new ArrayList<String>());
+        }
+        pendingMessages.get(agentID).add(message);
     }
 
+
+    /**
+     * Handle requests from the pub/sub agents
+     * @param   clientSocket    socket to connect with agent
+     */
     private void handleInput(Socket clientSocket) {
         System.out.println("Handling input from " + clientSocket.getInetAddress());
 
@@ -121,7 +146,7 @@ public class EventManager {
             switch(messageChunked[0]) {
                 case "register":	{
                     String port = messageChunked[PORT_INDEX];
-                    int clientId = this.registerAgent(port, clientSocket.getInetAddress());
+                    int clientId = registerAgent(port, clientSocket.getInetAddress());
                     sendMessage(clientId, "id&" + clientId);
                     break;
                 }
@@ -140,50 +165,47 @@ public class EventManager {
                     if (name != null) {
                         Event article = new Event(eventSeed.getAndIncrement(), topics.get(name),
                                                   messageChunked[1], content);
-                        this.notifySubscribers(article);
+                        notifySubscribers(article);
                     }
-
                     break;
                 }
                 
                 case "subscribe":	{	// subscribe&<id>&<topicId>
-                    // add agent to the list of subscribers of topic
                     int agentID = Integer.parseInt(messageChunked[1]);
                     int topicID = Integer.parseInt(messageChunked[2]);
                     if (topicID < topicSeed.get()) {
-                        this.addSubscriber(agentID, topicID);
+                        addSubscriber(agentID, topicID);
                         sendMessage(agentID, "confirmed&Subscribed successfully.");
                     }
                     else {
                         sendMessage(agentID, "confirmed&Invalid topic ID.");                        
                     }
-                
                     break;
                 }
 
                 case "topics":  { // topics&<id>
                     int agentID = Integer.parseInt(messageChunked[1]);
-                    this.listAllTopics(agentID);
+                    listAllTopics(agentID);
                     break;
                 }
 
                 case "subscribedtopics":	{	// subscribedtopics&<id>
                     int agentID = Integer.parseInt(messageChunked[1]);
-                    this.listSubscribedTopics(agentID);
+                    listSubscribedTopics(agentID);
                     break;
                 }
 
                 case "unsubscribe":	{	// unsubscribe&<id>&<topicId>
                     int agentID = Integer.parseInt(messageChunked[1]);
                     int topicID = Integer.parseInt(messageChunked[2]);
-                    this.removeSubscriber(agentID, topicID);
+                    removeSubscriber(agentID, topicID);
                     sendMessage(agentID, "confirmed&Unsubscribed successfully.");
                     break;
                 }
 
                 case "unsubscribeall":	{	// unsubscribeall&<id>
                     int agentID = Integer.parseInt(messageChunked[1]);
-                    this.unsubscribeAll(agentID);
+                    unsubscribeAll(agentID);
                     sendMessage(agentID, "confirmed&Unsubscribed successfully.");
                     break;
                 }
@@ -191,7 +213,7 @@ public class EventManager {
                 case "subscribekeyword": { // subscribekeyword&<agentid>&<keyword>
                     int agentID = Integer.parseInt(messageChunked[1]);
                     String keyword = messageChunked[2].toLowerCase();
-                    this.subscribeKeyword(agentID, keyword);
+                    subscribeKeyword(agentID, keyword);
                     sendMessage(agentID, "confirmed&Subscribed successfully.");
                     break;
                 }
@@ -199,7 +221,7 @@ public class EventManager {
                 case "advertise": {	// advertise&<topicName>&<keywordsList> 	
                     String topicName = messageChunked[1].toLowerCase();
                     String[] keywordsList = messageChunked[2].split("\\s+");
-                    this.addTopic(topicName, keywordsList);
+                    addTopic(topicName, keywordsList);
                     break;
                 }
 
@@ -218,8 +240,9 @@ public class EventManager {
         }
     }
 
-    /*
-     * notify all subscribers of new event 
+    /**
+     * Method to notify all subscribers of new event 
+     * @param   event   Event to notify all subscribers of event topic about
      */
     private void notifySubscribers(Event event) {
         String name = event.getTopic().getName();
@@ -230,13 +253,15 @@ public class EventManager {
         String message = new String("article" + "&" + title + "&" + name + "&" + content);
         Set<Integer> subscribers = topicMap.get(topicID);
         for (Integer s: subscribers) {
-            this.sendMessage(s, message);
+            sendMessage(s, message);
         }
         events.add(event);
     }
     
-    /*
-     * add new topic when received advertisement of new topic
+    /**
+     * Method to add new topic when received advertisement of new topic
+     * @param   topicName   name of the topic to add
+     * @param   keywords    string array of keywords associated with that topic 
      */
     private synchronized void addTopic(String topicName, String[] keywords){
         if (!topics.containsKey(topicName)) {
@@ -248,38 +273,48 @@ public class EventManager {
         }
     }
     
-    /*
+    /**
      * add subscriber to the internal list
+     * @param   agentID     unique ID assigned to agent upon registering
+     * @param   topicID     unique ID assigned to topic upon creation
      */
     private synchronized void addSubscriber(int agentID, int topicID) {
-        // List<String> subscriberInfo = portMap.get(agentID);
-        if (topicMap.containsKey(topicID)) {
+        if (topicMap.containsKey(topicID))
             topicMap.get(topicID).add(agentID);
-        }
     }
 
     private synchronized void subscribeKeyword(int agentID, String word) {
         for (String topicName: topics.keySet())
             for (String keyword: topics.get(topicName).getKeywords())
                 if (keyword.equals(word))
-                    this.addSubscriber(agentID, topics.get(topicName).getID());
+                    addSubscriber(agentID, topics.get(topicName).getID());
     }
     
-    /*
-     * remove subscriber from the list
+    /**
+     * Method to remove subscriber from the list
+     * @param   agentID     unique ID assigned to agent upon registering
+     * @param   topic       topic that the agent wants to be unsubscribed from     
      */
-    private synchronized void removeSubscriber(int agent, int topic){
+    private synchronized void removeSubscriber(int agentID, int topic){
         if (topicMap.containsKey(topic)) {
-            if (topicMap.get(topic).contains(agent)) 
-                topicMap.get(topic).remove(agent);
+            if (topicMap.get(topic).contains(agentID)) 
+                topicMap.get(topic).remove(agentID);
         }
     }
     
-    private synchronized void unsubscribeAll(int agent) {
-        for (int t: topicMap.keySet())
-            this.removeSubscriber(agent, t);
+    /**
+     * Method to remove subscriber from all the topics currently subscribed to
+     * @param   agentID     unique ID assigned to the agent upon registering
+     */
+    private synchronized void unsubscribeAll(int agentID) {
+        for (int topic: topicMap.keySet())
+            removeSubscriber(agentID, topic);
     }
 
+    /**
+     * Method to advertise a new topic
+     * @param   topic   topic to advertise
+     */
     private void advertiseTopic(Topic topic) {
         String message = "advertisement&" + topic.getID() + "&" + topic.getName() +
                          "&" + String.join(" ", topic.getKeywords());
@@ -289,16 +324,24 @@ public class EventManager {
         }
     }
 
-    private void listAllTopics(int agent) {
+    /**
+     * List all topics in the pub/sub system
+     * @param   agentID     unique ID assigned to agent upon registering
+     */
+    private void listAllTopics(int agentID) {
         String topicsList = new String("topics");
         for (String t: topics.keySet()) {
             int topicID = topics.get(t).getID();
             topicsList += "&" + topicID + ";" + t;
         }
-        this.sendMessage(agent, topicsList);
+        sendMessage(agentID, topicsList);
     }
 
-    private void listSubscribedTopics(int agent) {	// debug here
+    /**
+     * List of all topics that the pub/sub 
+     * @param   agentID     unique ID assigned to agent upon registering
+     */
+    private void listSubscribedTopics(int agentID) {
         String subscribedTopics = new String("subscribedtopics");
         for (String t: topics.keySet()) {
             int topicID = topics.get(t).getID();
@@ -306,9 +349,14 @@ public class EventManager {
                 subscribedTopics += "&" + topicID + ";" + t;
             }
         }
-        this.sendMessage(agent, subscribedTopics);
+        sendMessage(agentID, subscribedTopics);
     }
 
+
+    /**
+     * Main method - starts the Event Manager
+     * @param   args    command-line arguments
+     */
     public static void main(String[] args) {
         new EventManager().startService();
     }
