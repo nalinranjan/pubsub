@@ -1,5 +1,8 @@
 package edu.rit.CSCI652.impl;
 
+/**
+ * EventManager.java
+ */
 
 import java.net.ConnectException;
 import java.net.InetAddress;
@@ -13,7 +16,12 @@ import edu.rit.CSCI652.demo.Event;
 import edu.rit.CSCI652.demo.Topic;
 
 /**
- * Event Manager that handles all pub/sub operations. 
+ * Event Manager class that handles all pub/sub operations. 
+ *
+ * @author  Nalin Ranjan
+ * @author  Sanchitha Seshadri
+ *
+ *
  */
 public class EventManager {
     private int PORT = 5000;
