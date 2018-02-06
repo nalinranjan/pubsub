@@ -96,8 +96,6 @@ public class PubSubAgent implements Publisher, Subscriber{
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        System.out.println("Message sent: " + message);
     }
 
     /**

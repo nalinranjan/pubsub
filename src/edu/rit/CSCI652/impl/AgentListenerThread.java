@@ -66,8 +66,6 @@ public class AgentListenerThread implements Runnable {
      * @param   message     The received message
      */
     private void handleInput(String message) {
-        System.out.println("Message received: " + message);
-
         String[] messageChunks = message.split("\\^");
         if (messageChunks[0].equals("multi")) {
             for (int i = 1; i < messageChunks.length; i++) {
