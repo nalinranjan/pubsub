@@ -265,9 +265,9 @@ public class PubSubAgent implements Publisher, Subscriber{
     public void publish() {
         String message = "publish&";
         try {
-            System.out.print("\nEnter title: ");
-            message += stdIn.readLine() + "&";
             System.out.print("\nEnter topic ID: ");
+            message += stdIn.readLine() + "&";
+            System.out.print("\nEnter title: ");
             message += stdIn.readLine() + "&";
             System.out.print("\nEnter article contents: ");
             message += stdIn.readLine(); 

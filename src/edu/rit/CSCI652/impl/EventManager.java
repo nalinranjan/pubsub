@@ -159,9 +159,9 @@ public class EventManager {
                     break;
                 }
 
-                case "publish":	{ // publish&<title>&<topicID>&<content>
+                case "publish":	{ // publish&<topicID>&<title>&<content>
                     // send content to all subscribers
-                    int topicID = Integer.parseInt(messageChunked[2]);
+                    int topicID = Integer.parseInt(messageChunked[1]);
                     String content = messageChunked[3];
                     String name = null;
                     for (String t: topics.keySet()) {
@@ -172,7 +172,7 @@ public class EventManager {
                     }
                     if (name != null) {
                         Event article = new Event(eventSeed.getAndIncrement(), topics.get(name),
-                                                  messageChunked[1], content);
+                                                  messageChunked[2], content);
                         notifySubscribers(article);
                     }
                     break;
