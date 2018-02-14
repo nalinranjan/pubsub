@@ -233,6 +233,12 @@ public class EventManager {
                     break;
                 }
 
+                case "checkin":  { // topics&<id>
+                    int agentID = Integer.parseInt(messageChunked[1]);
+                    sendMessage(agentID, "");
+                    break;
+                }
+
                 default: {
                     break;
                 }

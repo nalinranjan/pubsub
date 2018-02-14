@@ -62,6 +62,7 @@ public class PubSubAgent implements Publisher, Subscriber{
         }
 
         readIdFile();
+        checkin();
         startCli();
     }
 
@@ -172,6 +173,10 @@ public class PubSubAgent implements Publisher, Subscriber{
 
                 case 8:
                     publish();
+                    break;
+
+                case 9:
+                    checkin();
                     break;
                 
                 case 10:
@@ -289,11 +294,18 @@ public class PubSubAgent implements Publisher, Subscriber{
     }
 
     /**
+     * Sends a request to check for pending notifications.
+     */
+    public void checkin() {
+        sendMessage("checkin&" + agentId);
+    }
+
+    /**
      * Entry point of the program. Creates a new agent.
      * 
      * @param	args	Command-line arguments
      */
     public static void main(String[] args) {
-        PubSubAgent agent = new PubSubAgent();
+        new PubSubAgent();
     }
 }
